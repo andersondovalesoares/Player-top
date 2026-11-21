@@ -6,6 +6,8 @@ Aplicativo Android **Fluid Player**, em modo **local + online**, que incorpora a
 
 - Selecionar e reproduzir arquivos de vídeo do aparelho pelo seletor nativo do Android.
 - Reproduzir links diretos HTTP/HTTPS de arquivos e streams compatíveis com Android WebView.
+- Abrir páginas de sites dentro do próprio aplicativo para usar o player original do site quando o link colado não for um arquivo direto.
+- Compatibilidade aprimorada com JavaScript, armazenamento local e cookies de terceiros no Android WebView.
 - Controles de vídeo em tela cheia.
 - Interface em português.
 - Player HTML5 como alternativa caso a CDN do Fluid Player não esteja acessível.
@@ -35,7 +37,7 @@ O APK debug ficará em `app/build/outputs/apk/debug/app-debug.apk`.
 - Esta é uma integração WebView, não um player Android nativo independente.
 - A interface oficial Fluid Player é carregada da CDN `https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js`; os controles Fluid Player exigem internet na primeira carga. O vídeo HTML5 pode funcionar como alternativa.
 - Codecs e formatos dependem do Android WebView e do aparelho.
-- Use links diretos de mídia. Páginas de sites, DRM, autenticação ou restrições contra reprodução externa podem impedir a reprodução. O aplicativo não contorna DRM ou bloqueios.
+- Links diretos de mídia são enviados ao player integrado. Links de páginas (por exemplo, URLs /video/ ou /watch/) abrem no WebView para usar o player original do site. Sites com DRM, autenticação especial, bloqueio de WebView ou restrições de reprodução podem impedir o vídeo. O aplicativo não contorna DRM ou bloqueios.
 - O aplicativo aceita HTTP e HTTPS por compatibilidade. Prefira HTTPS e fontes confiáveis.
 - O workflow gera um APK **debug** para testes, não um pacote de release assinado para Play Store.
 
