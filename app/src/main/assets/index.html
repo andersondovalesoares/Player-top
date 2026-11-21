@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#10131a"><title>Fluid Player</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#10131a;color:#f5f7fb;font:16px system-ui,sans-serif;padding:18px}.brand{font-size:25px;font-weight:750;margin:8px 0 4px}.sub{color:#aab4c5;font-size:13px;margin-bottom:22px}.panel{background:#1b2230;border:1px solid #303b50;border-radius:16px;padding:15px;margin-bottom:14px}label{display:block;font-weight:650;margin-bottom:9px}input[type=url]{width:100%;padding:13px;border-radius:10px;border:1px solid #43506a;background:#101722;color:white;font-size:14px}button,.pick{display:block;width:100%;padding:13px;border:0;border-radius:10px;background:#3678f6;color:white;font-size:15px;font-weight:700;margin-top:10px;text-align:center}.pick{background:#29364c}video{width:100%;max-height:58vh;background:#000;border-radius:12px}.hint{font-size:12px;color:#aab4c5;line-height:1.5;margin-top:10px}.status{font-size:13px;color:#aab4c5;margin-top:10px;overflow-wrap:anywhere}
+</style>
+<script src="https://cdn.fluidplayer.com/v3/current/fluidplayer.min.js"></script>
+</head>
+<body>
+<div class="brand">Fluid Player</div><div class="sub">Seus vídeos locais e links online em um só lugar</div>
+<section class="panel">
+<label for="videoFile" class="pick">Escolher vídeo do celular</label>
+<input id="videoFile" type="file" accept="video/*" hidden>
+<div class="hint">Selecione um vídeo armazenado no aparelho. O Android abrirá o seletor de arquivos.</div>
+</section>
+<section class="panel">
+<label for="videoUrl">Reproduzir vídeo por link</label>
+<input id="videoUrl" type="url" inputmode="url" placeholder="https://exemplo.com/video.mp4">
+<button id="playUrl">Reproduzir link</button>
+<div class="hint">Use um endereço direto de vídeo compatível com o Android WebView. A compatibilidade depende do aparelho e do servidor. Alguns sites bloqueiam reprodução externa.</div>
+</section>
+<section class="panel">
+<video id="fp-video" controls playsinline preload="metadata"></video>
+<div id="status" class="status">Pronto para reproduzir.</div>
+</section>
+<script>
+const video=document.getElementById('fp-video');const status=document.getElementById('status');let player=null;let localObjectUrl=null;
+function setStatus(t){status.textContent=t}
+function initPlayer(){try{if(typeof window.fluidPlayer==='function'){player=fluidPlayer('fp-video',{layoutControls:{controlBar:{autoHide:true},allowDownload:false,playbackRateEnabled:true,allowTheatre:true,fillToContainer:true},vastOptions:{adList:[]}});setStatus('Fluid Player carregado.')}else{setStatus('Player HTML5 ativo. Conecte à internet para carregar a interface Fluid Player.')}}catch(e){setStatus('Player HTML5 ativo. '+e.message)}}
+function playSource(src,type){if(localObjectUrl&&localObjectUrl!==src){URL.revokeObjectURL(localObjectUrl);localObjectUrl=null}try{if(player&&typeof player.destroy==='function'){player.destroy();player=null}}catch(e){}video.pause();video.removeAttribute('src');while(video.firstChild)video.removeChild(video.firstChild);const source=document.createElement('source');source.src=src;if(type)source.type=type;video.appendChild(source);video.load();initPlayer();video.play().catch(()=>setStatus('Vídeo carregado. Toque em Play para iniciar.'))}
+document.getElementById('videoFile').addEventListener('change',e=>{const f=e.target.files&&e.target.files[0];if(!f)return;if(localObjectUrl){URL.revokeObjectURL(localObjectUrl);localObjectUrl=null}localObjectUrl=URL.createObjectURL(f);playSource(localObjectUrl,f.type||'');setStatus('Arquivo local: '+f.name)});
+window.addEventListener('beforeunload',()=>{if(localObjectUrl)URL.revokeObjectURL(localObjectUrl)});
+document.getElementById('playUrl').addEventListener('click',()=>{const raw=document.getElementById('videoUrl').value.trim();try{const u=new URL(raw);if(!['http:','https:'].includes(u.protocol))throw new Error();playSource(u.href,'');setStatus('Carregando: '+u.href)}catch(e){setStatus('Informe um link válido começando com https:// ou http://')}});
+initPlayer();
+</script>
+</body></html>
