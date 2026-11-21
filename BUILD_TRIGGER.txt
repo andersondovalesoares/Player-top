@@ -1,1 +1,1 @@
-Fluid Player Android APK build retry after Android SDK workflow adjustment.
+APK build retry with explicit Android SDK manager path.
