@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.CookieManager;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -23,14 +24,32 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         webView = new WebView(this);
         webView.setLayoutParams(new FrameLayout.LayoutParams(-1, -1));
+        webView.setFocusable(true);
+        webView.setFocusableInTouchMode(true);
+
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
+        s.setDatabaseEnabled(true);
         s.setAllowFileAccess(true);
+        s.setAllowContentAccess(true);
+        s.setJavaScriptCanOpenWindowsAutomatically(true);
+        s.setSupportMultipleWindows(false);
+        s.setUseWideViewPort(true);
+        s.setLoadWithOverviewMode(true);
         s.setMediaPlaybackRequiresUserGesture(true);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            s.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
+            CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
+        }
+        CookieManager.getInstance().setAcceptCookie(true);
+
+        // Keep normal website links inside this same WebView. Android Back returns to the player screen.
         webView.setWebViewClient(new WebViewClient());
+
         webView.setWebChromeClient(new WebChromeClient() {
             @Override public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
                 if (fileCallback != null) fileCallback.onReceiveValue(null);
@@ -41,12 +60,15 @@ public class MainActivity extends Activity {
                 startActivityForResult(intent, PICK_VIDEO);
                 return true;
             }
+
             @Override public void onShowCustomView(View view, CustomViewCallback callback) {
                 if (customView != null) { callback.onCustomViewHidden(); return; }
-                customView = view; customViewCallback = callback;
+                customView = view;
+                customViewCallback = callback;
                 setContentView(view);
                 getWindow().getDecorView().setSystemUiVisibility(5894 | 1024 | 512);
             }
+
             @Override public void onHideCustomView() {
                 if (customView == null) return;
                 setContentView(webView);
@@ -55,6 +77,7 @@ public class MainActivity extends Activity {
                 if (customViewCallback != null) customViewCallback.onCustomViewHidden();
             }
         });
+
         setContentView(webView);
         webView.loadUrl("file:///android_asset/index.html");
     }
@@ -62,7 +85,8 @@ public class MainActivity extends Activity {
     @Override protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_VIDEO && fileCallback != null) {
-            Uri[] results = (resultCode == Activity.RESULT_OK && data != null && data.getData() != null) ? new Uri[]{data.getData()} : null;
+            Uri[] results = (resultCode == Activity.RESULT_OK && data != null && data.getData() != null)
+                    ? new Uri[]{data.getData()} : null;
             fileCallback.onReceiveValue(results);
             fileCallback = null;
         }
@@ -76,11 +100,19 @@ public class MainActivity extends Activity {
             if (customViewCallback != null) customViewCallback.onCustomViewHidden();
             return;
         }
-        if (webView.canGoBack()) webView.goBack(); else super.onBackPressed();
+        if (webView != null && webView.canGoBack()) webView.goBack();
+        else super.onBackPressed();
     }
 
     @Override protected void onDestroy() {
-        if (webView != null) { webView.destroy(); webView = null; }
+        if (fileCallback != null) {
+            fileCallback.onReceiveValue(null);
+            fileCallback = null;
+        }
+        if (webView != null) {
+            webView.destroy();
+            webView = null;
+        }
         super.onDestroy();
     }
 }
