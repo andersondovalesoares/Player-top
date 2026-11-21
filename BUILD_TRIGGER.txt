@@ -1,1 +1,1 @@
-Build requested for Fluid Player Android. See .github/workflows/build-apk.yml.
+Fluid Player Android APK build retry after Android SDK workflow adjustment.
